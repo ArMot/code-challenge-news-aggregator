@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
-    protected $userRepository;
+    protected UserRepository $userRepository;
 
     public function __construct(UserRepository $userRepository)
     {
@@ -26,6 +26,11 @@ class AuthService
         return $this->userRepository->create($data);
     }
 
+    /**
+     * @param array<string, string> $credentials
+     *
+     * @return string
+     */
     public function login(array $credentials): string
     {
         $user = $this->userRepository->findByEmail($credentials['email']);

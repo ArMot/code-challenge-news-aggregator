@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\User;
 use Tests\TestCase;
 
+use function Pest\Laravel\postJson;
+
 it('validates registration data', function () {
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.register'), [
+    $response = postJson(route('user.register'), [
         'email' => 'invalid-email',
         'password' => 'short',
     ]);
@@ -17,8 +20,7 @@ it('validates registration data', function () {
 });
 
 it('registers a user with valid data', function () {
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.register'), [
+    $response = postJson(route('user.register'), [
         'name' => 'John Doe',
         'email' => 'john.doe@example.com',
         'password' => 'password123',
@@ -30,8 +32,7 @@ it('registers a user with valid data', function () {
 });
 
 it('validates login data', function () {
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.login'), [
+    $response = postJson(route('user.login'), [
         'email' => 'not-an-email',
         'password' => '',
     ]);
@@ -45,8 +46,7 @@ it('authenticate a user with correct credentials', function () {
         'password' => bcrypt('password123'),
     ]);
 
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.login'), [
+    $response = postJson(route('user.login'), [
         'email' => $user->email,
         'password' => 'password123',
     ]);
@@ -60,8 +60,7 @@ it('prevents login with incorrect credentials', function () {
         'password' => bcrypt('password123'),
     ]);
 
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.login'), [
+    $response = postJson(route('user.login'), [
         'email' => $user->email,
         'password' => 'wrongpassword',
     ]);
@@ -85,8 +84,7 @@ it('logs out a user', function () {
 it('prevents duplicate email registration', function () {
     User::factory()->create(['email' => 'duplicate@example.com']);
 
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.register'), [
+    $response = postJson(route('user.register'), [
         'name' => 'Jane Doe',
         'email' => 'duplicate@example.com',
         'password' => 'password123',
@@ -103,8 +101,7 @@ it('allows login with case-insensitive email', function () {
         'password' => bcrypt('password123'),
     ]);
 
-    /** @var TestCase $this */
-    $response = $this->postJson(route('user.login'), [
+    $response = postJson(route('user.login'), [
         'email' => 'USER@example.com',
         'password' => 'password123',
     ]);
