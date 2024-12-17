@@ -28,7 +28,10 @@ it('registers a user with valid data', function () {
     ]);
 
     $response->assertStatus(201)
-        ->assertJson(['message' => 'User registered successfully.']);
+         ->assertJson([
+            'status' => 'success',
+            'message' => __('api.auth.register_success'),
+        ]);
 });
 
 it('validates login data', function () {

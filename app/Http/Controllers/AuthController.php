@@ -43,7 +43,7 @@ class AuthController extends Controller
     {
         $this->authService->register($request->validated());
 
-        return ApiResponse::success('null', 'User registered successfully.', 201);
+        return ApiResponse::success(null, 'api.auth.register_success', 201);
     }
 
     /**
@@ -67,7 +67,7 @@ class AuthController extends Controller
     {
         $token = $this->authService->login($request->validated());
 
-        return ApiResponse::success(['token' => $token], 'Login successful');
+        return ApiResponse::success(['token' => $token], 'api.auth.login_success');
     }
 
     /**
@@ -82,6 +82,6 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
-        return ApiResponse::success(null, 'Logged out successfully', 204);
+        return ApiResponse::success(null, 'api.auth.logout_success', 204);
     }
 }

@@ -14,8 +14,10 @@ class ApiResponse
      * @param int $statusCode
      * @return JsonResponse
      */
-    public static function success(mixed $data = null, ?string $message = null, int $statusCode = 200): JsonResponse
+    public static function success(mixed $data = null, ?string $messageKey = null, int $statusCode = 200): JsonResponse
     {
+        $message = $messageKey ? __($messageKey) : null;
+
         return response()->json([
             'status' => 'success',
             'data' => $data,
@@ -28,11 +30,13 @@ class ApiResponse
      *
      * @param string $message
      * @param int $statusCode
-     * @param array|null $details
+     * @param array<string>|null $details
      * @return JsonResponse
      */
-    public static function error(string $message, int $statusCode = 400, ?array $details = null): JsonResponse
+    public static function error(string $messageKey, int $statusCode = 400, ?array $details = null): JsonResponse
     {
+        $message = __($messageKey);
+
         return response()->json([
             'status' => 'error',
             'errors' => [

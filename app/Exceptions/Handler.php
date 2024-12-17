@@ -19,7 +19,7 @@ class Handler extends IlluminateHandler
         // Handle ValidationException
         if ($e instanceof ValidationException) {
             return ApiResponse::error(
-                'Validation error.',
+                'api.validation.error',
                 422,
                 $e->errors()
             );
@@ -28,7 +28,7 @@ class Handler extends IlluminateHandler
         // Handle AuthenticationException
         if ($e instanceof AuthenticationException) {
             return ApiResponse::error(
-                'Unauthenticated.',
+                'api.auth.unauthenticated',
                 401
             );
         }
@@ -43,7 +43,7 @@ class Handler extends IlluminateHandler
 
         // Handle Other Exceptions
         return ApiResponse::error(
-            'An unexpected error occurred.',
+            'api.general.unexpected_error',
             500,
             ['exception' => $e->getMessage()]
         );
