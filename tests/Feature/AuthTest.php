@@ -3,95 +3,120 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Database\Factories\UserFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-use function Pest\Laravel\postJson;
+it('validates registration data', function () {
+    /** @var TestCase $this */
+    $response = $this->postJson(route('user.register'), [
+        'email' => 'invalid-email',
+        'password' => 'short',
+    ]);
 
-test('example', function () {
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['email', 'password']);
+});
+
+it('registers a user with valid data', function () {
+    /** @var TestCase $this */
+    $response = $this->postJson(route('user.register'), [
+        'name' => 'John Doe',
+        'email' => 'john.doe@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJson(['message' => 'User registered successfully']);
+});
+
+it('validates login data', function () {
+    /** @var TestCase $this */
+    $response = $this->postJson(route('user.login'), [
+        'email' => 'not-an-email',
+        'password' => '',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['email', 'password']);
+});
+
+it('authenticate a user with correct credentials', function () {
+    $user = User::factory()->create([
+        'password' => bcrypt('password123'),
+    ]);
 
     /** @var TestCase $this */
-    $response = $this->get('/');
+    $response = $this->postJson(route('user.login'), [
+        'email' => $user->email,
+        'password' => 'password123',
+    ]);
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)
+        ->assertJsonStructure(['token']);
 });
 
+it('prevents login with incorrect credentials', function () {
+    $user = User::factory()->create([
+        'password' => bcrypt('password123'),
+    ]);
 
+    /** @var TestCase $this */
+    $response = $this->postJson(route('user.login'), [
+        'email' => $user->email,
+        'password' => 'wrongpassword',
+    ]);
 
-describe("register", function () {
-    it("succeed with proper data", function () {
-
-        /** @var TestCase $this */
-        $this->assertDatabaseCount(User::class, 0);
-
-        $payload = [
-            'name' => 'armot',
-            'email' => 'valid@mail.com',
-            'password' => 'thisIsASuperSecurePassword',
-            'password_confirmation' => 'thisIsASuperSecurePassword',
-        ];
-        $registerRoute = route('user.register', $data = $payload);
-        $response = postJson($registerRoute);
-
-        $response->assertStatus(201);
-
-
-        $this->assertDatabaseHas(User::class, ['email' => 'valid@mail.com', 'name' => 'armot']);
-
-        $this->assertDatabaseCount(User::class, 1);
-    });
-
-    it("fails with invalid data ", function () {
-
-        /** @var TestCase $this */
-        $this->assertDatabaseCount(User::class, 0);
-        $payloadWithNoName = ['email' => 'valid@mail.com', 'password' => 'securePassword'];
-
-        $registerRoute = route('user.register');
-        $response = postJson($registerRoute, $data = $payloadWithNoName);
-
-        $response->assertStatus(422);
-        $this->assertDatabaseMissing(User::class, ['email' => 'valid@mail.com']);
-
-        $payloadWithNoEmail = ['name' => 'armot', 'password' => 'securePassword'];
-
-        $response = postJson($registerRoute, $data = $payloadWithNoEmail);
-
-        $response->assertStatus(422);
-        $this->assertDatabaseMissing(User::class, ['name' => 'armot']);
-
-        $payloadWithNoPassword = ['name' => 'armot', 'email' => 'valid@mail.com'];
-
-        $response = postJson($registerRoute, $data = $payloadWithNoPassword);
-
-        $response->assertStatus(422);
-        $this->assertDatabaseMissing(User::class, ['name' => 'armot', 'email' => 'valid@mail.com']);
-
-        $this->assertDatabaseCount(User::class, 0);
-    });
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['email']);
 });
 
-describe('login', function () {
-    it('succeed with correct credentials', function () {
-        $user = User::factory()->create(['password' => 'securePassword']);
+it('logs out a user', function () {
+    $user = User::factory()->create();
 
-        $this->assertDatabaseHas(User::class, ['id' => $user->id]);
+    $token = $user->createToken('TestToken')->plainTextToken;
 
-        $loginRoute = route('user.login');
-        $response = postJson($loginRoute, $data = ['email' => $user->email, 'password' => 'securePassword']);
-        // dd($response);
+    /** @var TestCase $this */
+    $response = $this->withHeader('Authorization', "Bearer $token")
+        ->postJson(route('user.logout'));
 
-        $response->assertStatus(200);
-    });
-    it('fails with invalid credentials', function () {
-        $user = User::factory()->create(['password' => 'correctPassword']);
+    $response->assertStatus(204);
+});
 
-        $loginRoute = route('user.login');
-        $response = postJson($loginRoute, ['email' => $user->email, 'password' => 'wrongPassword']);
+it('prevents duplicate email registration', function () {
+    User::factory()->create(['email' => 'duplicate@example.com']);
 
+    /** @var TestCase $this */
+    $response = $this->postJson(route('user.register'), [
+        'name' => 'Jane Doe',
+        'email' => 'duplicate@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ]);
 
-        $response->assertStatus(401);
-    });
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['email']);
+});
+
+it('allows login with case-insensitive email', function () {
+    $user = User::factory()->create([
+        'email' => 'user@example.com',
+        'password' => bcrypt('password123'),
+    ]);
+
+    /** @var TestCase $this */
+    $response = $this->postJson(route('user.login'), [
+        'email' => 'USER@example.com',
+        'password' => 'password123',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonStructure(['token']);
+});
+
+it('handles invalid tokens during logout gracefully', function () {
+    /** @var TestCase $this */
+    $response = $this->withHeader('user.rization', 'Bearer invalid-token')
+        ->postJson(route('user.logout'));
+
+    $response->assertStatus(401);
 });
