@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -37,11 +39,11 @@ class AuthController extends Controller
  *     @OA\Response(response=422, description="Validation error")
  * )
  */
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
         $this->authService->register($request->validated());
 
-        return response()->json(['message' => 'User registered successfully'], 201);
+        return ApiResponse::success('null', 'User registered successfully.', 201);
     }
 
     /**
@@ -61,11 +63,11 @@ class AuthController extends Controller
      *     @OA\Response(response=401, description="Invalid credentials")
      * )
      */
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request): JsonResponse
     {
         $token = $this->authService->login($request->validated());
 
-        return response()->json(['token' => $token], 200);
+        return ApiResponse::success(['token' => $token], 'Login successful');
     }
 
     /**
@@ -77,9 +79,9 @@ class AuthController extends Controller
      *     @OA\Response(response=200, description="Logged out successfully")
      * )
      */
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out successfully'], 204);
+        return ApiResponse::success(null, 'Logged out successfully', 204);
     }
 }

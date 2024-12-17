@@ -26,7 +26,7 @@ it('registers a user with valid data', function () {
     ]);
 
     $response->assertStatus(201)
-        ->assertJson(['message' => 'User registered successfully']);
+        ->assertJson(['message' => 'User registered successfully.']);
 });
 
 it('validates login data', function () {
@@ -52,7 +52,7 @@ it('authenticate a user with correct credentials', function () {
     ]);
 
     $response->assertStatus(200)
-        ->assertJsonStructure(['token']);
+        ->assertJsonStructure(['data' => ['token']]);
 });
 
 it('prevents login with incorrect credentials', function () {
@@ -110,7 +110,7 @@ it('allows login with case-insensitive email', function () {
     ]);
 
     $response->assertStatus(200)
-        ->assertJsonStructure(['token']);
+        ->assertJsonStructure(['data' => ['token']]);
 });
 
 it('handles invalid tokens during logout gracefully', function () {
