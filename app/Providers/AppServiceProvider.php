@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Repositories\UserPreferenceRepository;
+use App\Repositories\UserPreferenceRepositoryImpl;
 use Illuminate\Support\Facades\Route;
 use App\Repositories\ArticleRepository;
 use App\Repositories\ArticleRepositoryImpl;
@@ -18,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(UserRepository::class, UserRepositoryImpl::class);
         $this->app->bind(ArticleRepository::class, ArticleRepositoryImpl::class);
+        $this->app->bind(UserPreferenceRepository::class, UserPreferenceRepositoryImpl::class);
     }
 
     /**
