@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Route;
+use App\Repositories\ArticleRepository;
+use App\Repositories\ArticleRepositoryImpl;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\UserRepository;
 use App\Repositories\UserRepositoryImpl;
@@ -14,6 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(UserRepository::class, UserRepositoryImpl::class);
+        $this->app->bind(ArticleRepository::class, ArticleRepositoryImpl::class);
     }
 
     /**
@@ -21,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Define Global route pattern, from now on all of the (id) params in routes must be numeric
+        Route::pattern('id', '[0-9]+');
     }
 }
