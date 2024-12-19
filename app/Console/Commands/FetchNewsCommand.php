@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Repositories\ArticleRepository;
+use App\Services\NewsAggregationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -22,54 +23,23 @@ class FetchNewsCommand extends Command
      */
     protected $description = 'Command description';
 
-    private ArticleRepository $articleRepository;
+    private NewsAggregationService $newsAggregationService;
     private array $newsSources;
 
     /**
      * Execute the console command.
      */
 
-    public function __construct(ArticleRepository $articleRepository)
+    public function __construct(NewsAggregationService $newsAggregationService)
     {
         parent::__construct();
-        $this->articleRepository = $articleRepository;
-        $this->newsSources = app('newsSources');
+        $this->newsAggregationService = $newsAggregationService;
     }
     public function handle(): int
     {
-        foreach ($this->newsSources as $sourceName => $sourceService) {
-            $this->info("Fetching articles from: $sourceName");
-
-            try {
-                $articles = $sourceService->fetchArticles();
-
-                $this->storeArticles($articles);
-                foreach ($articles as $article) {
-                    $this->articleRepository->store($article);
-                }
-
-                $this->info("Successfully fetched and stored articles from $sourceName.");
-            } catch (\Exception $e) {
-                Log::error("Error fetching articles from $sourceName: {$e->getMessage()}");
-                $this->error("Failed to fetch articles from $sourceName. Check logs for details.");
-            }
-        }
-
+        $this->info('Starting news aggregation process...');
+        $this->newsAggregationService->fetchAndStoreNews();
+        $this->info('News aggregation completed.');
         return Command::SUCCESS;
-    }
-
-    /**
-    * @param Article[] $articles
-    */
-    private function storeArticles(array $articles): void
-    {
-        foreach ($articles as $article) {
-            try {
-                $this->articleRepository->store($article);
-            } catch (\Exception $e) {
-                Log::error("could not save article with url {$article->url}: {$e->getMessage()}");
-                $this->error("could not save article with url {$article->url}: {$e->getMessage()}");
-            }
-        }
     }
 }

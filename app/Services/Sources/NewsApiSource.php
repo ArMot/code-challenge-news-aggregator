@@ -18,6 +18,9 @@ class NewsApiSource implements NewsSourceInterface
         $this->baseUrl = config('news_sources.newsapi.base_url');
     }
 
+    /**
+    * @return NewsArticle[]
+    */
     public function fetchArticles(): array
     {
         $response = Http::get("{$this->baseUrl}/top-headlines", [

@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\FetchNewsCommand;
 use App\Repositories\UserPreferenceRepository;
 use App\Repositories\UserPreferenceRepositoryImpl;
+use App\Services\Sources\GuardianSource;
+use App\Services\Sources\NewsApiSource;
+use App\Services\Sources\NewsSourceInterface;
 use Illuminate\Support\Facades\Route;
 use App\Repositories\ArticleRepository;
 use App\Repositories\ArticleRepositoryImpl;
@@ -21,6 +25,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepository::class, UserRepositoryImpl::class);
         $this->app->bind(ArticleRepository::class, ArticleRepositoryImpl::class);
         $this->app->bind(UserPreferenceRepository::class, UserPreferenceRepositoryImpl::class);
+
+
+        $this->app->singleton('newsSources', function () {
+            return [
+                'NewsAPI' => app(NewsApiSource::class),
+                'Guardian' => app(GuardianSource::class),
+            ];
+        });
     }
 
     /**

@@ -18,6 +18,9 @@ class GuardianSource implements NewsSourceInterface
         $this->baseUrl = config('news_sources.guardian.base_url');
     }
 
+    /**
+    * @return NewsArticle[]
+    */
     public function fetchArticles(): array
     {
         $response = Http::get("{$this->baseUrl}/search", [
