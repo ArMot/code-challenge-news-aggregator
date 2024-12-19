@@ -65,4 +65,27 @@ class ArticleRepositoryImpl implements ArticleRepository
             ]
         );
     }
+
+    public function getArticlesByPreferences(
+        array $sources = [],
+        array $categories = [],
+        array $authors = [],
+        int $perPage = 10
+    ): LengthAwarePaginator {
+        $query = Article::query();
+
+        if ($sources) {
+            $query->whereIn('source', $sources);
+        }
+
+        if ($categories) {
+            $query->whereIn('category', $categories);
+        }
+
+        if ($authors) {
+            $query->whereIn('author', $authors);
+        }
+
+        return $query->paginate($perPage);
+    }
 }

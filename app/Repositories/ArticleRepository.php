@@ -21,5 +21,15 @@ interface ArticleRepository
     public function search(array $filters, int $perPage = 10): LengthAwarePaginator;
 
     public function store(NewsArticle $article): void;
-
+    /**
+     * @return void
+     * @param string[] $sources
+     * @param string[] $categories
+     * @param string[] $authors
+     */
+    public function getArticlesByPreferences(
+        array $sources = [],
+        array $categories = [],
+        array $authors = []
+    ): LengthAwarePaginator;
 }

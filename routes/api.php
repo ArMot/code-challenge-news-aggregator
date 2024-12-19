@@ -13,6 +13,7 @@ Route::prefix('user')->name('user.')->group(function () {
     Route::name('preferences.')->middleware('auth:sanctum')->group(function () {
         Route::get('preferences', [UserPreferenceController::class, 'index'])->name('index');
         Route::post('preferences', [UserPreferenceController::class, 'store'])->name('store');
+        Route::get('feed', [UserPreferenceController::class, 'getPersonalizedFeed'])->name('feed');
     });
 });
 

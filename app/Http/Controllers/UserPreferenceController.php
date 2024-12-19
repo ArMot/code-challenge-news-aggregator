@@ -7,6 +7,7 @@ use App\Http\Requests\SetUserPreferenceRequest;
 use App\Services\UserPreferenceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Request;
 
 class UserPreferenceController extends Controller
 {
@@ -29,5 +30,14 @@ class UserPreferenceController extends Controller
         $preferences = $this->service->setUserPreferences(Auth::id(), $request->validated());
 
         return ApiResponse::success($preferences, __('messages.preferences.updated_success'));
+    }
+
+    public function getPersonalizedFeed(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $articles = $this->service->getPersonalizedFeed($userId);
+
+        return ApiResponse::success($articles);
     }
 }
