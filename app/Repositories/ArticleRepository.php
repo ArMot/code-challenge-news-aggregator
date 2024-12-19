@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DTO\NewsArticle;
 use App\Models\Article;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -18,4 +19,7 @@ interface ArticleRepository
     * @param array<string, mixed> $filters
     */
     public function search(array $filters, int $perPage = 10): LengthAwarePaginator;
+
+    public function store(NewsArticle $article): void;
+
 }
