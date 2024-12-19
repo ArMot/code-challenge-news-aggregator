@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Article;
 use App\Models\User;
 use App\Models\UserPreference;
+use Illuminate\Support\Facades\Cache;
+use Mockery;
 use Tests\TestCase;
 
 use function Pest\Laravel\getJson;
@@ -73,4 +75,39 @@ it('retrieves personalized feed', function () {
         ->getJson(route('user.preferences.feed'))
         ->assertStatus(200)
         ->assertJsonCount(5, 'data.data');
+});
+
+it('caches user preferences', function () {
+    $user = User::factory()->create();
+    $preferences = UserPreference::factory()->create(['user_id' => $user->id]);
+
+    Cache::shouldReceive('remember')
+        ->once()
+        ->with("user-preferences:{$user->id}", Mockery::any(), Mockery::type('Closure'))
+        ->andReturn($preferences);
+
+    /** @var TestCase $this */
+    $this->actingAs($user, 'sanctum')
+        ->getJson(route('user.preferences.index'))
+        ->assertStatus(200)
+        ->assertJson(['data' => $preferences->toArray()]);
+});
+
+it('clears cache after updating preferences', function () {
+    $user = User::factory()->create();
+    $preferences = UserPreference::factory()->create(['user_id' => $user->id]);
+
+    Cache::shouldReceive('forget')
+        ->once()
+        ->with("user-preferences:{$user->id}");
+
+    /** @var TestCase $this */
+    $this->actingAs($user, 'sanctum')
+        ->postJson(
+            route('user.preferences.store', [
+                'sources' => ['NewSource'],
+                'categories' => ['Tech'],
+            ])
+        )
+        ->assertStatus(200);
 });
