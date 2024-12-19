@@ -1,0 +1,242 @@
+openapi: 3.0.3
+info:
+  title: News Aggregator API
+  version: 1.0.0
+  description: A RESTful API for managing a news aggregator service.
+  contact:
+    name: API Support
+    email: support@newsaggregator.com
+servers:
+  - url: http://localhost/api
+    description: Local development server
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user and returns an API token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
+              required:
+                - name
+                - email
+                - password
+      responses:
+        "201":
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "400":
+          description: Invalid input.
+
+  /auth/login:
+    post:
+      summary: Login a user
+      description: Authenticates a user and returns an API token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "401":
+          description: Invalid credentials.
+
+  /auth/logout:
+    post:
+      summary: Logout a user
+      description: Invalidates the user's API token.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logout successful.
+
+  /articles:
+    get:
+      summary: Get articles
+      description: Retrieves a paginated list of articles.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: source
+          in: query
+          schema:
+            type: string
+        - name: author
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A paginated list of articles.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Article"
+        "400":
+          description: Invalid query parameters.
+
+  /articles/{id}:
+    get:
+      summary: Get an article by ID
+      description: Retrieves details of a specific article.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Article details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        "404":
+          description: Article not found.
+
+  /preferences:
+    get:
+      summary: Get user preferences
+      description: Retrieves the preferences for the authenticated user.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User preferences.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreference"
+
+    put:
+      summary: Update user preferences
+      description: Updates the preferences for the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreference"
+      responses:
+        "200":
+          description: Preferences updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreference"
+        "400":
+          description: Invalid input.
+
+  /personalized-feed:
+    get:
+      summary: Get personalized news feed
+      description: Retrieves a personalized news feed based on user preferences.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A personalized feed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Article"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+        category:
+          type: string
+        source:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+    UserPreference:
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        authors:
+          type: array
+          items:
+            type: string
