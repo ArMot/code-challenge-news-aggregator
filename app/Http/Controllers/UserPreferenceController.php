@@ -22,14 +22,14 @@ class UserPreferenceController extends Controller
     {
         $preferences = $this->service->getUserPreferences(Auth::id());
 
-        return ApiResponse::success($preferences, __('messages.preferences.fetched_success'));
+        return ApiResponse::success($preferences, __('api.preferences.fetched_success'));
     }
 
     public function store(SetUserPreferenceRequest $request): JsonResponse
     {
         $preferences = $this->service->setUserPreferences(Auth::id(), $request->validated());
 
-        return ApiResponse::success($preferences, __('messages.preferences.updated_success'));
+        return ApiResponse::success($preferences, __('api.preferences.updated_success'));
     }
 
     public function getPersonalizedFeed(Request $request): JsonResponse
