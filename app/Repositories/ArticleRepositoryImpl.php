@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\DTO\NewsArticle;
 use App\Models\Article;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class ArticleRepositoryImpl implements ArticleRepository
 {
@@ -72,20 +73,35 @@ class ArticleRepositoryImpl implements ArticleRepository
         array $authors = [],
         int $perPage = 10
     ): LengthAwarePaginator {
-        $query = Article::query();
 
-        if ($sources) {
-            $query->whereIn('source', $sources);
-        }
+        // cache frequently accessed articles for a set duration.
+        $cacheKey = $this->generateCacheKey($sources, $categories, $authors);
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($sources, $categories, $authors) {
+            $query = Article::query();
 
-        if ($categories) {
-            $query->whereIn('category', $categories);
-        }
+            if ($sources) {
+                $query->whereIn('source', $sources);
+            }
 
-        if ($authors) {
-            $query->whereIn('author', $authors);
-        }
+            if ($categories) {
+                $query->whereIn('category', $categories);
+            }
 
-        return $query->paginate($perPage);
+            if ($authors) {
+                $query->whereIn('author', $authors);
+            }
+
+            return $query->paginate(10);
+        });
+    }
+    /**
+     * @param string[] $sources
+     * @param string[] $categories
+     * @param string[] $authors
+     * @return string
+     */
+    private function generateCacheKey($sources, $categories, $authors): string
+    {
+        return md5(json_encode(compact('sources', 'categories', 'authors')));
     }
 }
